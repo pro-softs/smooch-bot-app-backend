@@ -3,14 +3,12 @@
 const Script = require('smooch-bot').Script;
 
 module.exports = new Script({
-    processing: {
-        prompt: (bot) => bot.say('Welcome to PRO icecream center!!!'),
-        receive: () => 'processing'
-    },
 
     start: {
-        receive: (bot) => {
-            return bot.say('!!!!!!HI Welcome to PRO icecream center!!!!!!')
+       receive: (bot) => {
+            return bot.say('Hi welcome to fitblink!')
+                .then(() => bot.say('I am fitbot, I will assist you in finding the right solution for you based on your fitness or health needs'))
+                .then(() => bot.say('Let\'s get to know each other better'))
                 .then(() => 'askName');
         }
     },
@@ -20,70 +18,107 @@ module.exports = new Script({
         receive: (bot, message) => {
             const name = message.text.trim();
             bot.setProp('name', name);
-            return bot.say(`I'll call you ${name}! Great! \n So ${name}, We have following flavours- \n Vanilla -------- $6 \n Chocolate -------- $4 \n Mix --------$7 \n Which one would you like?`)
-                .then(() => 'choice');
+            return bot.say(`Hi ${name}`)
+                .then(() => bot.say('Can I get your'))
+                .then(() => 'age');
         }
     },
 
-    choice: {
+    age: {
+        prompt: (bot) => bot.say('Age (in yrs)'),
         receive: (bot, message) => {
-            const choice = message.text.trim();
-            bot.setProp('choice', choice);
-
-            bot.setProp('pr_vanilla', '5');
-            bot.setProp('pr_chocolate', '4');
-            bot.setProp('pr_mixed', '7');
-
-            if(choice === "Vanilla" || choice === "vanilla") {
-                return bot.getProp('name')
-                .then((name) => bot.say(`Nice choice ${name}. It's always in greater demand in our store!!! \n How many would you like to have ${name}?`))
-                .then(() => 'total');
-            } else if(choice === 'Chocolate' || choice === 'chocolate') {
-                 return bot.getProp('name')
-                     .then((name) => bot.say(`How many would you like to have ${name}?`))
-                     .then(() => 'total');
-            } else if(choice === 'Mix' || choice === 'mix') {
-                return bot.getProp('name')
-                    .then((name) => bot.say(`It seems you are lucky ${name}. This flavour is available for today only. \nHow many would you like to have {$name}?`))
-                    .then(() => 'total');
-            } else {
-                return bot.getProp('name')
-                    .then((name) => bot.say(`${name}, it seems You entered a wrong choice. Please Enter avalid choice.`))
-                    .then(() => 'choice');
-            }
+            const age = Number(message.text.trim());
+            return bot.setProp('age', age)
+               .then(() => 'gender');
         }
     },
 
-    total: {
+    gender: {
+        prompt: (bot) => bot.say('Gender'),
         receive: (bot, message) => {
-            const num = Number(message.text.trim()); 
-            var price = 0;
-            var total = 0;
-            var chc;
-
-            return bot.getProp('choice').then((choice) => {
-                console.log(choice);
-
-                chc = choice;
-                if(choice === 'vanilla' || choice === 'Vanilla')
-                    bot.getProp('pr_vanilla').then((pr_vanilla) => {
-                        price = Number(pr_vanilla);
-                    });
-
-                else if(choice === 'chocolate' || choice === 'Chocolate')
-                    bot.getProp('pr_chocolate').then((pr_chocolate) => {
-                        price = Number(pr_chocolate);
-                    });
-
-                else if(choice === 'mix' || choice === 'Mix')
-                    bot.getProp('pr_mixed').then((pr_mixed) => {
-                        price = Number(pr_mixed);
-                    });
-            }).then(() => {
-                total = price*num;
-            }).then(() => bot.say(`Your order for ${num} ${chc} icecream is ready.
-                 \n Your total is ${total}. \n Please pay at the counter.
-                        \n Hope to serve you again..`));
+            const gender = message.text.trim();
+            return bot.setProp('gender', gender)
+                .then(() => 'height');
         }
-    }
+    },
+
+    height: {
+        prompt: (bot) => bot.say('Height (in cm)'),
+        receive: (bot, message) => {
+            const height = Number(message.text.trim());
+            return bot.setProp('height', height)
+               .then(() => 'weight');
+        }
+    },
+
+    weight: {
+        prompt: (bot) => bot.say('Weight (in kg)'),
+        receive: (bot, message) => {
+            const weight = Number(message.text.trim());
+            return bot.setProp('weight', weight)
+                 .then(() => 'phone');
+        }
+    },
+
+    phone: {
+        prompt: (bot) => bot.say('Phone Number'),
+        receive: (bot, message) => {
+            var bmi = 0;
+            const number = message.text.trim();
+            bot.setProp('number', number);
+            return bot.say('The details are only for my eyes!! Your secret is safe with me ;)')
+                .then(() => bot.say('Let me check your bmi!!')).then(() => bot.getProp('weight').then((weight) => bot.getProp('height').then((height) => {
+                bmi = (weight*100*100)/(height*height);
+            }))).then(() => bot.setProp('bmi', bmi))
+                .then(() =>
+                bot.say(`Your bmi is ${bmi}`)).then(() => {
+                  if(bmi >=18.5 && bmi <= 24.9)
+                    return bot.say('You’re already fit, I wonder if you need me, Ah! But I can show you tricks which can help maintain this already good health')
+                           .then(() => bot.say('Before I do that, let me ask if you have any specific issue like Migraine, Back pain,or any injury that I should know about?'))
+                           .then(() => 'issues');
+                  else 
+                    return bot.say(`Well, we got your back, Looks like we have just the right set of experts and activities which can help you get your BMI back in normal zone`).
+                      then(() => bot.say('It’s time to find you a personal trainer, this number will be tamed, that’s our commitment.'))
+                        .then(() => 
+                            bot.say('Would you like to continue your journey using Gym workouts and diet? Just Diet? Or how about some Yoga?'))
+                        .then(() => 'choice');
+          });
+        }
+    },
+
+    issues: {
+
+        receive: (bot, message) => {
+                                        const issues = message.text.trim();
+                                        bot.setProp('issues', issues);
+                                        if(issues == 'yes' || issues == 'Yes')
+                                            return bot.say('Here are some experts on the same!!');
+                                        else
+                                            return bot.say('You must be doing something to stay that fit? Let’s me show you how we will track that for you').
+                                              then(() => bot.say('We have a pedometer integrated for you, which can show you number of steps you’ve walked or run, distance, time when you were active and calories you’ve burnt doing those activity!!'))
+                                              .then(() => 'pedometer');
+                                    }
+            
+   },
+
+   choice: {
+    receive: (bot, message) => {
+                                                        const type = message.text.trim();
+                                                        bot.say('type', type);
+
+                                                        if(type == 'Gym workouts')
+                                                            return bot.say('You have chosen gym workouts!!');
+                                                        else if(type == 'Diet')
+                                                            return bot.say('You have chosen Diet!!');
+                                                        else if(type == 'Yoga')
+                                                            return bot.say('You have chosen Yoga!!');
+                                                        else
+                                                            return bot.say('Please choose correct option!!!');
+                                                    }
+ },
+
+   pedometer: {
+    prompt: (bot) => bot.say('Link to profile page!!')
+   }
+
 });
